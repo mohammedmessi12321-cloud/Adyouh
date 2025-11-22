@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Mini App + Monetag 2025</title>
+
+<!-- Telegram WebApp SDK -->
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+<!-- Monetag SDK -->
+<script src='//libtl.com/sdk.js' data-zone='10216564' data-sdk='show_10216564'></script>
+
+<style>
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #000; /* خلفية سوداء */
+    color: white;
+    margin:0; padding:20px 20px 80px 20px; /* مساحة للشريط السفلي */
+    text-align: center;
+  }
+
+  button {
+    width: 100%;
+    padding: 15px;
+    margin: 10px 0;
+    font-size: 18px;
+    border-radius: 12px;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    transition: transform 0.2s;
+  }
+
+  button:hover { transform: translateY(-2px); }
+
+  .btn-reward { background: #1e90ff; color: white; } /* أزرق متقرح */
+  .btn-popup { background: #ffc107; color: #333; }   /* أصفر متقرح */
+  .btn-inapp { background: #ff4c4c; color: white; }  /* أحمر متقرح */
+  .btn-withdraw { background: #28a745; color: white; }
+
+  input, select {
+    width: 100%;
+    padding: 12px;
+    margin: 10px 0;
+    border-radius: 10px;
+    border: none;
+    font-size: 16px;
+  }
+
+  .card {
+    background: rgba(255,255,255,0.1);
+    border-radius: 15px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+  }
+
+  #coins {
+    font-size: 24px;
+    margin: 20px 0;
+  }
+
+  /* Footer */
+  .footer {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    padding: 15px;
+    background: #111; /* خلفية سوداء داكنة */
+    border-top: 2px solid #444;
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    z-index: 1000;
+  }
+
+  .footer a {
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 16px;
+    transition: transform 0.2s, text-shadow 0.2s;
+  }
+
+  .footer a:hover {
+    transform: translateY(-3px);
+    text-shadow: 0 0 10px currentColor;
+  }
+
+  /* ألوان متقرحة لكل شبكة */
+  .footer .website { color: #1e90ff; }    /* أزرق متقرح */
+  .footer .facebook { color: #4267B2; }   /* أزرق فيسبوك */
+  .footer .instagram { color: #C13584; }  /* وردي/أرجواني */
+  .footer .whatsapp { color: #25D366; }   /* أخضر واتساب */
+  .footer .telegram { color: #0088cc; }   /* أزرق تيليغرام */
+</style>
+</head>
+<body>
+
+<h2>🎉 شاهد إعلان… اربح نقاط… اسحب فلوس حقيقية!</h2>
+
+<div class="card">
+  <button class="btn-reward" onclick="showRewardInterstitial()">💸🤑 شاهد إعلان👀3 اربح نقاط✔</button>
+  <button class="btn-popup" onclick="showRewardPopup()">💸🤑 شاهد إعلان👀3 اربح نقاط ✔</button>
+  <button class="btn-inapp" onclick="runInAppInterstitial()">💸🤑 شاهد إعلان👀6 اربح نقاط✔</button>
+</div>
+
+<div class="card">
+  <h3 id="coins">نقاطك: 0 = 0 درهم</h3>
+  <p>الحد الأدنى للسحب: 50,000 نقطة = 1,000 درهم</p>
+
+  <select id="withdraw-method">
+    <option value="" disabled selected>اختر طريقة السحب</option>
+    <option value="bkash">bKash</option>
+    <option value="binance">Binance</option>
+    <option value="cashplus">CashPlus</option>
+    <option value="cih">CIH Bank</option>
+    <option value="paypal">PayPal</option>
+  </select>
+
+  <input type="text" id="withdraw-account" placeholder="رقم الحساب / البريد الإلكتروني / رقم الهاتف / عنوان Binance">
+
+  <button class="btn-withdraw" onclick="submitWithdraw()">إرسال طلب السحب</button>
+</div>
+
+<script>
+const tg = window.Telegram.WebApp;
+tg.expand();
+
+let coins = localStorage.getItem("coins") ? Number(localStorage.getItem("coins")) : 0;
+updateCoins();
+
+function rewardUser(points=1) {
+  coins += points;
+  localStorage.setItem("coins", coins);
+  updateCoins();
+}
+
+function updateCoins() {
+  const dirham = (coins/50000*100).toFixed(2);
+  document.getElementById("coins").innerHTML = `نقاطك: ${coins} = ${dirham} درهم`;
+}
+
+// إعلان Rewarded Interstitial
+function showRewardInterstitial() {
+  show_10216564().then(() => {
+    rewardUser(3);
+    alert("🎉 تمت مشاهدة الإعلان! تم إضافة 3 نقاط");
+  });
+}
+
+// إعلان Rewarded Popup
+function showRewardPopup() {
+  show_10216564('pop')
+    .then(() => {
+      rewardUser(3);
+      alert("🎉 تمت مشاهدة إعلان Popup! تم إضافة 3 نقاط");
+    })
+    .catch(() => alert("حدث خطأ في الإعلان."));
+}
+
+// In-App Interstitial
+function runInAppInterstitial() {
+  show_10216564({
+    type:'inApp',
+    inAppSettings: { frequency:2, capping:0.1, interval:30, timeout:5, everyPage:false }
+  });
+  rewardUser(6);
+  alert("📢 تم تفعيل In-App Interstitial! تم إضافة 6 نقاط");
+}
+
+// إرسال طلب السحب
+function submitWithdraw() {
+  const method = document.getElementById("withdraw-method").value;
+  const account = document.getElementById("withdraw-account").value.trim();
+  if(!method || !account) return alert("اختر طريقة السحب وأدخل الحساب أو البريد أو الهاتف أو عنوان Binance.");
+
+  let accountType = '';
+  const phoneRegex = /^\+?\d{7,15}$/;
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if(phoneRegex.test(account)) accountType='phone';
+  else if(emailRegex.test(account)) accountType='email';
+  else accountType='binance';
+
+  if(coins < 50000) return alert("الحد الأدنى للسحب: 50,000 نقطة = 1,000 درهم");
+
+  const dirham = Math.floor(coins/50000*100)/100;
+
+  if(!confirm(`هل تريد سحب ${dirham} درهم عبر ${method} باستخدام: ${account} (${accountType})?`)) return;
+
+  const payload = {
+    type:'withdrawal',
+    method,
+    account,
+    accountType,
+    points:coins,
+    dirham,
+    timestamp: new Date().toISOString()
+  };
+  coins=0; localStorage.setItem("coins",coins);
+  updateCoins();
+  if(tg) tg.sendData(JSON.stringify(payload));
+  alert("✅ تم إرسال طلب السحب بنجاح!");
+}
+</script>
+
+<!-- Footer مع روابط الشبكات -->
+<div class="footer">
+  <a href="https://elbaraoiguimohamed.blogspot.com/" target="_blank" class="website">🌐 الموقع</a>
+  <a href="https://www.facebook.com/MohammedElBaraoigui/" target="_blank" class="facebook">📘 فيسبوك</a>
+  <a href="https://www.instagram.com/mohammedelbaraoigui/" target="_blank" class="instagram">📸 إنستاغرام</a>
+  <a href="https://otieu.com/4/7512619" target="_blank" class="whatsapp">📱 واتساب</a>
+  <a href="https://t.me/@ReTetrisBot" target="_blank" class="telegram">✈️ تيليغرام</a>
+</div>
+
+</body>
+</html>
